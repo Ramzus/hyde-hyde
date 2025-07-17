@@ -1,0 +1,152 @@
+name: Maintenance
+
+on:
+  schedule:
+    # Run monthly on the first day
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+
+jobs:
+  check-hugo-updates:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Get latest Hugo version
+      id: hugo-version
+      run: |
+        latest_version=$(curl -s https://api.github.com/repos/gohugoio/hugo/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+        echo "latest=$latest_version" >> $GITHUB_OUTPUT
+        echo "Latest Hugo version: $latest_version"
+
+    - name: Check minimum version requirement
+      run: |
+        min_version=$(grep 'min_version' theme.toml | cut -d'"' -f2)
+        latest_version="${{ steps.hugo-version.outputs.latest }}"
+        
+        echo "Current minimum version: $min_version"
+        echo "Latest Hugo version: $latest_version"
+        
+        # Simple version comparison (works for semantic versioning)
+        if [ "$(printf '%s\n' "$min_version" "$latest_version" | sort -V | head -n1)" = "$min_version" ]; then
+          echo "✅ Minimum version is compatible with latest Hugo"
+        else
+          echo "⚠️ Minimum version requirement may need updating"
+        fi
+
+    - name: Test with latest Hugo
+      run: |
+        # Setup latest Hugo
+        wget -O hugo.deb https://github.com/gohugoio/hugo/releases/download/v${{ steps.hugo-version.outputs.latest }}/hugo_extended_${{ steps.hugo-version.outputs.latest }}_linux-amd64.deb
+        sudo dpkg -i hugo.deb
+        
+        cd exampleSite
+        hugo --themesDir ../.. --theme hyde-hyde --verbose
+        echo "✅ Theme works with latest Hugo version"
+
+  check-dependencies:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Check for outdated references
+      run: |
+        echo "Checking for outdated CDN references..."
+        
+        # Check for common CDN libraries that might be outdated
+        find layouts -name "*.html" -exec grep -l "cdn\|jsdelivr\|unpkg\|cdnjs" {} \; | while read file; do
+          echo "Checking $file for CDN references..."
+          grep -n "cdn\|jsdelivr\|unpkg\|cdnjs" "$file" || true
+        done
+
+    - name: Check for deprecated Hugo functions
+      run: |
+        echo "Checking for deprecated Hugo functions..."
+        
+        # List of functions that might be deprecated in newer Hugo versions
+        deprecated_functions=(
+          "\.Hugo\."
+          "\.RSSLink"
+          "\.URL"
+          "\.UniqueID"
+        )
+        
+        for func in "${deprecated_functions[@]}"; do
+          if grep -r "$func" layouts/; then
+            echo "⚠️ Found potentially deprecated function: $func"
+          fi
+        done
+
+    - name: Generate maintenance report
+      run: |
+        echo "# Maintenance Report" > maintenance-report.md
+        echo "Generated on: $(date)" >> maintenance-report.md
+        echo "" >> maintenance-report.md
+        echo "## Hugo Version Check" >> maintenance-report.md
+        echo "- Latest Hugo: ${{ steps.hugo-version.outputs.latest }}" >> maintenance-report.md
+        echo "- Current min_version: $(grep 'min_version' theme.toml | cut -d'"' -f2)" >> maintenance-report.md
+        echo "" >> maintenance-report.md
+        echo "## File Statistics" >> maintenance-report.md
+        echo "- SCSS files: $(find assets/scss -name "*.scss" | wc -l)" >> maintenance-report.md
+        echo "- Layout files: $(find layouts -name "*.html" | wc -l)" >> maintenance-report.md
+        echo "- Static files: $(find static -type f | wc -l)" >> maintenance-report.md
+
+    - name: Upload maintenance report
+      uses: actions/upload-artifact@v3
+      with:
+        name: maintenance-report
+        path: maintenance-report.md
+
+  cleanup-resources:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Check for unused files
+      run: |
+        echo "Checking for potentially unused files..."
+        
+        # Check for unused SCSS partials
+        find assets/scss -name "_*.scss" | while read scss_file; do
+          filename=$(basename "$scss_file" .scss)
+          if ! grep -r "@import.*$filename\|@use.*$filename" assets/scss/; then
+            echo "⚠️ Potentially unused SCSS partial: $scss_file"
+          fi
+        done
+        
+        # Check for unused static files
+        find static -type f -name "*.css" -o -name "*.js" | while read static_file; do
+          filename=$(basename "$static_file")
+          if ! grep -r "$filename" layouts/; then
+            echo "⚠️ Potentially unused static file: $static_file"
+          fi
+        done
+
+    - name: Check file permissions
+      run: |
+        echo "Checking file permissions..."
+        
+        # Find executable files that shouldn't be
+        find . -type f -name "*.md" -o -name "*.html" -o -name "*.scss" -o -name "*.css" | while read file; do
+          if [ -x "$file" ]; then
+            echo "⚠️ File has executable permission: $file"
+          fi
+        done
+
+    - name: Validate file encoding
+      run: |
+        echo "Checking file encoding..."
+        
+        # Check for non-UTF-8 files
+        find . -type f -name "*.md" -o -name "*.html" -o -name "*.scss" | while read file; do
+          if ! file "$file" | grep -q "UTF-8"; then
+            echo "⚠️ Non-UTF-8 file found: $file"
+            file "$file"
+          fi
+        done

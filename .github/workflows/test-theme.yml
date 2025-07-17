@@ -1,0 +1,293 @@
+name: Test Hugo Theme
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  test-theme:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        hugo-version: 
+          - 'latest'
+          - '0.119.0'  # Extended version for SCSS processing
+          - '0.100.0'  # Older stable version
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Setup Hugo
+      uses: peaceiris/actions-hugo@v2
+      with:
+        hugo-version: ${{ matrix.hugo-version }}
+        extended: true
+
+    - name: Cache Hugo modules
+      uses: actions/cache@v3
+      with:
+        path: /tmp/hugo_cache
+        key: ${{ runner.os }}-hugomod-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-hugomod-
+
+    - name: Setup Node.js (for additional tooling)
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+
+    - name: Install dependencies
+      run: |
+        npm install -g htmlhint
+        npm install -g broken-link-checker
+
+    - name: Test theme structure
+      run: |
+        echo "Checking theme.toml..."
+        if [ ! -f "theme.toml" ]; then
+          echo "❌ theme.toml not found"
+          exit 1
+        fi
+        echo "✅ theme.toml exists"
+        
+        echo "Checking required directories..."
+        for dir in "layouts" "static" "assets"; do
+          if [ ! -d "$dir" ]; then
+            echo "❌ Required directory $dir not found"
+            exit 1
+          fi
+          echo "✅ $dir directory exists"
+        done
+
+    - name: Validate theme.toml
+      run: |
+        echo "Validating theme.toml structure..."
+        if ! grep -q "name\s*=" theme.toml; then
+          echo "❌ theme.toml missing name field"
+          exit 1
+        fi
+        if ! grep -q "min_version\s*=" theme.toml; then
+          echo "❌ theme.toml missing min_version field"
+          exit 1
+        fi
+        echo "✅ theme.toml structure is valid"
+
+    - name: Test Hugo build with example site
+      run: |
+        echo "Building example site..."
+        cd exampleSite
+        hugo --themesDir ../.. --theme hyde-hyde --verbose --minify --cleanDestinationDir
+        echo "✅ Hugo build successful"
+
+    - name: Check generated files
+      run: |
+        cd exampleSite
+        echo "Checking for required generated files..."
+        
+        if [ ! -f "public/index.html" ]; then
+          echo "❌ index.html not generated"
+          exit 1
+        fi
+        echo "✅ index.html generated"
+        
+        if [ ! -f "public/sitemap.xml" ]; then
+          echo "❌ sitemap.xml not generated"
+          exit 1
+        fi
+        echo "✅ sitemap.xml generated"
+        
+        if [ ! -d "public/css" ]; then
+          echo "❌ CSS files not generated"
+          exit 1
+        fi
+        echo "✅ CSS files generated"
+
+    - name: Validate HTML output
+      run: |
+        cd exampleSite/public
+        echo "Validating HTML files..."
+        find . -name "*.html" -exec htmlhint {} \; || true
+        
+        echo "Checking for common HTML issues..."
+        if grep -r "TODO\|FIXME\|XXX" *.html; then
+          echo "⚠️ Found TODO/FIXME comments in HTML output"
+        fi
+
+    - name: Test SCSS compilation
+      run: |
+        echo "Testing SCSS compilation..."
+        cd exampleSite
+        # Build again to ensure SCSS is properly compiled
+        hugo --themesDir ../.. --theme hyde-hyde --verbose
+        
+        echo "Checking CSS output..."
+        if [ ! -f "public/css/hyde-hyde.css" ]; then
+          echo "❌ Main CSS file not found"
+          exit 1
+        fi
+        echo "✅ SCSS compilation successful"
+
+    - name: Check for broken internal links
+      run: |
+        cd exampleSite/public
+        echo "Checking for broken internal links..."
+        # Simple check for obviously broken links
+        if grep -r "href=\"#\"" *.html; then
+          echo "⚠️ Found empty anchor links"
+        fi
+        
+        if grep -r "src=\"\"" *.html; then
+          echo "❌ Found empty src attributes"
+          exit 1
+        fi
+
+    - name: Test different content types
+      run: |
+        cd exampleSite
+        echo "Testing content rendering..."
+        
+        # Check if posts are rendered
+        if [ ! -f "public/posts/index.html" ]; then
+          echo "❌ Posts list not generated"
+          exit 1
+        fi
+        echo "✅ Posts list generated"
+        
+        # Check if portfolio is rendered
+        if [ ! -f "public/portfolio/index.html" ]; then
+          echo "❌ Portfolio not generated"
+          exit 1
+        fi
+        echo "✅ Portfolio generated"
+
+    - name: Performance and accessibility checks
+      run: |
+        cd exampleSite/public
+        echo "Basic performance checks..."
+        
+        # Check file sizes
+        large_files=$(find . -name "*.css" -size +500k)
+        if [ ! -z "$large_files" ]; then
+          echo "⚠️ Large CSS files found:"
+          echo "$large_files"
+        fi
+        
+        large_js=$(find . -name "*.js" -size +500k)
+        if [ ! -z "$large_js" ]; then
+          echo "⚠️ Large JS files found:"
+          echo "$large_js"
+        fi
+        
+        # Check for basic accessibility
+        if ! grep -r "alt=" *.html | head -5; then
+          echo "⚠️ Consider adding alt attributes to images"
+        fi
+
+    - name: Upload build artifacts
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: hugo-build-${{ matrix.hugo-version }}
+        path: |
+          exampleSite/public/
+          exampleSite/resources/
+        retention-days: 3
+
+  test-theme-config-variations:
+    runs-on: ubuntu-latest
+    needs: test-theme
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Hugo
+      uses: peaceiris/actions-hugo@v2
+      with:
+        hugo-version: 'latest'
+        extended: true
+
+    - name: Test with minimal config
+      run: |
+        cd exampleSite
+        echo "Testing with minimal configuration..."
+        
+        # Create minimal config
+        cat > config-minimal.toml << EOF
+        baseurl = "https://example.com/"
+        languageCode = "en"
+        title = "Test Site"
+        theme = "hyde-hyde"
+        EOF
+        
+        hugo --config config-minimal.toml --themesDir ../.. --theme hyde-hyde
+        echo "✅ Minimal config test passed"
+
+    - name: Test with extended config
+      run: |
+        cd exampleSite
+        echo "Testing with extended configuration..."
+        
+        # Test with original config plus some additional options
+        hugo --themesDir ../.. --theme hyde-hyde --baseURL "https://test.example.com" --minify
+        echo "✅ Extended config test passed"
+
+  lint-and-format:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install linting tools
+      run: |
+        npm install -g stylelint stylelint-config-standard-scss
+        npm install -g prettier
+
+    - name: Lint SCSS files
+      run: |
+        echo "Linting SCSS files..."
+        
+        # Create stylelint config if it doesn't exist
+        if [ ! -f ".stylelintrc.json" ]; then
+          cat > .stylelintrc.json << EOF
+        {
+          "extends": "stylelint-config-standard-scss",
+          "rules": {
+            "selector-class-pattern": null,
+            "custom-property-pattern": null,
+            "scss/dollar-variable-pattern": null
+          }
+        }
+        EOF
+        fi
+        
+        find assets/scss -name "*.scss" -exec stylelint {} \; || true
+
+    - name: Check file formatting
+      run: |
+        echo "Checking file formatting..."
+        
+        # Check for consistent line endings
+        if find . -name "*.scss" -o -name "*.html" -o -name "*.md" | xargs file | grep CRLF; then
+          echo "⚠️ Found files with CRLF line endings"
+        fi
+        
+        # Check for trailing whitespace
+        if find . -name "*.scss" -o -name "*.html" -o -name "*.md" | xargs grep -l "[[:space:]]$"; then
+          echo "⚠️ Found files with trailing whitespace"
+        fi

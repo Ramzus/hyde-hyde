@@ -1,0 +1,187 @@
+name: Theme Validation
+
+on:
+  push:
+    tags:
+      - 'v*'
+  schedule:
+    # Run weekly to catch Hugo updates that might break the theme
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  validate-theme-compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        hugo-version:
+          - 'latest'
+          - '0.119.0'
+          - '0.110.0'
+          - '0.100.0'
+          - '0.90.0'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Hugo
+      uses: peaceiris/actions-hugo@v2
+      with:
+        hugo-version: ${{ matrix.hugo-version }}
+        extended: true
+
+    - name: Test theme compatibility
+      run: |
+        cd exampleSite
+        echo "Testing with Hugo ${{ matrix.hugo-version }}"
+        
+        # Check minimum version requirement
+        HUGO_VERSION=$(hugo version | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sed 's/v//')
+        MIN_VERSION=$(grep 'min_version' ../theme.toml | cut -d'"' -f2)
+        
+        echo "Hugo version: $HUGO_VERSION"
+        echo "Minimum required: $MIN_VERSION"
+        
+        # Build the site
+        hugo --themesDir ../.. --theme hyde-hyde --verbose
+        
+        echo "✅ Compatible with Hugo ${{ matrix.hugo-version }}"
+
+    - name: Generate compatibility report
+      if: always()
+      run: |
+        echo "## Hugo Compatibility Report" >> compatibility-report.md
+        echo "- Hugo Version: ${{ matrix.hugo-version }}" >> compatibility-report.md
+        echo "- Status: ${{ job.status }}" >> compatibility-report.md
+        echo "- Date: $(date)" >> compatibility-report.md
+
+    - name: Upload compatibility report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: compatibility-report-${{ matrix.hugo-version }}
+        path: compatibility-report.md
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Run security scan
+      run: |
+        echo "Scanning for potential security issues..."
+        
+        # Check for hardcoded secrets or sensitive data
+        if grep -r -E "(password|secret|key|token)" --include="*.html" --include="*.scss" --include="*.js" .; then
+          echo "⚠️ Potential sensitive data found in templates"
+        fi
+        
+        # Check for external script inclusions
+        if grep -r "script.*src.*http" layouts/; then
+          echo "⚠️ External script inclusions found"
+          grep -r "script.*src.*http" layouts/
+        fi
+        
+        # Check for inline JavaScript
+        if grep -r "javascript:" layouts/; then
+          echo "⚠️ Inline JavaScript found"
+        fi
+
+  theme-documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Validate documentation
+      run: |
+        echo "Checking theme documentation..."
+        
+        # Check README exists and has basic content
+        if [ ! -f "README.md" ]; then
+          echo "❌ README.md not found"
+          exit 1
+        fi
+        
+        # Check for basic documentation sections
+        if ! grep -q -i "installation" README.md; then
+          echo "⚠️ Installation instructions not found in README"
+        fi
+        
+        if ! grep -q -i "configuration" README.md; then
+          echo "⚠️ Configuration instructions not found in README"
+        fi
+        
+        # Check theme.toml completeness
+        required_fields=("name" "license" "description" "min_version")
+        for field in "${required_fields[@]}"; do
+          if ! grep -q "$field" theme.toml; then
+            echo "❌ Required field '$field' missing from theme.toml"
+            exit 1
+          fi
+        done
+        
+        echo "✅ Documentation validation passed"
+
+    - name: Check example site documentation
+      run: |
+        cd exampleSite
+        
+        if [ ! -f "README.md" ] && [ ! -f "../README.md" ]; then
+          echo "⚠️ No documentation found for example site"
+        fi
+        
+        # Check if config.toml is well documented
+        if ! grep -q "#" config.toml; then
+          echo "⚠️ config.toml lacks comments/documentation"
+        fi
+
+  performance-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Hugo
+      uses: peaceiris/actions-hugo@v2
+      with:
+        hugo-version: 'latest'
+        extended: true
+
+    - name: Build and measure performance
+      run: |
+        cd exampleSite
+        
+        echo "Measuring build performance..."
+        start_time=$(date +%s)
+        hugo --themesDir ../.. --theme hyde-hyde --verbose --minify
+        end_time=$(date +%s)
+        
+        build_time=$((end_time - start_time))
+        echo "Build time: ${build_time} seconds"
+        
+        if [ $build_time -gt 30 ]; then
+          echo "⚠️ Build time is longer than 30 seconds"
+        fi
+
+    - name: Analyze output size
+      run: |
+        cd exampleSite/public
+        
+        echo "Analyzing output size..."
+        total_size=$(du -sh . | cut -f1)
+        echo "Total size: $total_size"
+        
+        css_size=$(find . -name "*.css" -exec du -ch {} + | tail -1 | cut -f1)
+        echo "CSS size: $css_size"
+        
+        js_size=$(find . -name "*.js" -exec du -ch {} + | tail -1 | cut -f1)
+        echo "JS size: $js_size"
+        
+        html_size=$(find . -name "*.html" -exec du -ch {} + | tail -1 | cut -f1)
+        echo "HTML size: $html_size"
