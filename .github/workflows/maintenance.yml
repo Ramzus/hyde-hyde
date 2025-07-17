@@ -96,7 +96,7 @@ jobs:
         echo "- Static files: $(find static -type f | wc -l)" >> maintenance-report.md
 
     - name: Upload maintenance report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: maintenance-report
         path: maintenance-report.md
