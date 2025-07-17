@@ -2,6 +2,7 @@
 <div class="sidebar">
   <div class="container {{ with .Site.Params.sidebarSticky }}sidebar-sticky{{ end }}">
     <div class="sidebar-about">
+      <!-- Site Title/Logo at the top -->
       <span class="site__title">
         <a href="{{ .Site.BaseURL }}">
         {{ with .Site.Params.logoimage }}
@@ -13,6 +14,8 @@
         {{ end }}
         </a>
       </span>
+      
+      <!-- Author Image/Photo below title -->
       {{ if and (isset .Site.Params "authorimage") (not (isset .Site.Params.social "gravatar")) }}
         {{ with .Site.Params.authorimage }}
         {{ $strippedSlash := ($.Site.Params.authorimage | replaceRE "^(/)+(.*)" "$2") }}
@@ -27,6 +30,8 @@
           <img src="https://www.gravatar.com/avatar/{{md5 .}}?s=240&d=mp" class="img--circle img--headshot element--center" alt="gravatar">
         </div>
       {{ end }}
+      
+      <!-- Site Description below photo -->
       <p class="site__description">
         {{ with .Site.Params.description }} {{.}} {{end}}
       </p>
