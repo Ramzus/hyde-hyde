@@ -1,10 +1,27 @@
-[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://github.com/htr3n/hyde-hyde/blob/master/LICENSE.md) ![GitHub release](https://img.shields.io/github/release/htr3n/hyde-hyde.svg) ![GitHub stars](https://img.shields.io/github/stars/htr3n/hyde-hyde.svg) ![GitHub forks](https://img.shields.io/github/forks/htr3n/hyde-hyde.svg) ![GitHub issues](https://img.shields.io/github/issues/htr3n/hyde-hyde.svg) ![GitHub issues closed](https://img.shields.io/github/issues-closed/htr3n/hyde-hyde.svg)
+# Hyde-hyde (Fork)
 
-# Hyde-hyde
+> **🍴 This is a fork of the original [Hyde-hyde](https://github.com/htr3n/hyde-hyde) theme by [@htr3n](https://github.com/htr3n)**
 
 __`Hyde-hyde`__ is a [Hugo](https://gohugo.io)'s theme inspired and derived from @spf13's [Hyde](https://github.com/spf13/hyde.git) and [Nate Finch's blog](https://npf.io). 
 
-> NOTICE: Maintainers / collaborators seeking: As I'm underwater with my full time job at the moment, I'm actively looking for and welcome any new maintainers or collaborators. If you are interested, comment on [#130](https://github.com/htr3n/hyde-hyde/issues/130) and I can add you to the project. TIA.
+## About This Fork
+
+This repository is a fork of the original hyde-hyde theme. The original theme can be found at [htr3n/hyde-hyde](https://github.com/htr3n/hyde-hyde).
+
+### Fork Objectives
+
+This fork aims to:
+- Continue maintenance and development of the hyde-hyde theme
+- Address any outstanding issues and feature requests
+- Provide ongoing support for the Hugo community
+- Maintain compatibility with newer Hugo versions
+
+### Differences from Original
+
+Currently, this fork maintains compatibility with the original theme. Any significant changes or improvements will be documented here.
+
+### Repository Status
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://github.com/ramzus/hyde-hyde/blob/main/LICENSE.md) ![GitHub stars](https://img.shields.io/github/stars/ramzus/hyde-hyde.svg) ![GitHub forks](https://img.shields.io/github/forks/ramzus/hyde-hyde.svg) ![GitHub issues](https://img.shields.io/github/issues/ramzus/hyde-hyde.svg)
 
 ## Breaking Changes
 
@@ -31,10 +48,15 @@ __`Hyde-hyde`__ can be easily installed as many other Hugo themes:
 ```sh
 $ cd HUGO_PROJECT
 
-# then either clone hyde-hyde
-$ git clone https://github.com/htr3n/hyde-hyde.git themes/hyde-hyde
+# clone this fork
+$ git clone https://github.com/ramzus/hyde-hyde.git themes/hyde-hyde
 
-# or just add hyde-hyde as a submodule
+# or add this fork as a submodule
+$ git submodule add https://github.com/ramzus/hyde-hyde.git themes/hyde-hyde
+
+# alternatively, use the original repository
+$ git clone https://github.com/htr3n/hyde-hyde.git themes/hyde-hyde
+# or
 $ git submodule add https://github.com/htr3n/hyde-hyde.git themes/hyde-hyde
 ```
 
@@ -53,6 +75,22 @@ theme : "hyde-hyde"
 ```
 
 That's all. You can render your site using `hugo` and see `hyde-hyde` in action.
+
+### Development
+
+To serve the theme for development purposes, you can use the included example site:
+
+```sh
+# From the theme root directory
+$ hugo server --source exampleSite/ --themesDir ../..
+```
+
+This command will:
+- Use the `exampleSite/` directory as the Hugo site source
+- Set the themes directory to point to the parent directories (where this theme is located)
+- Start a local development server with live reload
+
+The development server will typically be available at `http://localhost:1313` and will automatically reload when you make changes to the theme files.
 
 ### Options
 
@@ -191,11 +229,28 @@ For example, for the [exampleSite](https://github.com/htr3n/hyde-hyde/tree/maste
 
 <img src='https://github.com/htr3n/hyde-hyde/raw/master/images/mobile.png' alt='hyde-hyde in mobile mode' width='60%'>
 
+## Contributing
+
+Contributions to this fork are welcome! Please feel free to:
+- Report issues
+- Submit pull requests
+- Suggest improvements
+- Help with documentation
+
+For issues related to the original theme design or architecture, you may also want to check the [original repository](https://github.com/htr3n/hyde-hyde) for context.
+
 ## Author(s)
 
-* Original developed by [Mark Otto](https://github.com/mdo)
+* **Original Hyde theme** developed by [Mark Otto](https://github.com/mdo)
+* **Hugo's `hyde` port** by [Steve Francia](https://github.com/spf13)
+* **Hyde-hyde theme** developed by [@htr3n](https://github.com/htr3n) - [Original Repository](https://github.com/htr3n/hyde-hyde)
+* **This fork** maintained by [@ramzus](https://github.com/ramzus)
 
-* Hugo's `hyde` ported by [Steve Francia](https://github.com/spf13)
+## Original Repository
+
+This is a fork of the original hyde-hyde theme. For the original work, issues, and discussions, please visit:
+- **Original Repository**: [htr3n/hyde-hyde](https://github.com/htr3n/hyde-hyde)
+- **Original Author**: [@htr3n](https://github.com/htr3n)
 
 ## License
 
