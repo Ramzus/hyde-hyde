@@ -1,1 +1,8 @@
+{{ with .Site.Params.sidebarColor }}
+<style>
+:root {
+  --sidebar-color: {{ . }};
+}
+</style>
+{{ end }}
 

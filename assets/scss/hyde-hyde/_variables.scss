@@ -90,6 +90,7 @@ $h5-font-size:1rem;
 
 // sidebar
 $sidebar-color: #300030;
+$sidebar-color-default: $sidebar-color; // fallback for CSS custom property
 $sidebar-width: 16rem;
 $site__title-font-size: 2.5rem;
 $copyright-font-size: $font-scale-dot7;

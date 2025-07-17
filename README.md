@@ -20,6 +20,10 @@ This fork aims to:
 
 Currently, this fork maintains compatibility with the original theme. Any significant changes or improvements will be documented here.
 
+#### New Features in This Fork
+
+* **Customizable Sidebar Color**: Added `sidebarColor` parameter in `config.toml` to easily customize the sidebar background color. Set `sidebarColor = "#your-color"` in the `[params]` section.
+
 ### Repository Status
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://github.com/ramzus/hyde-hyde/blob/main/LICENSE.md) ![GitHub stars](https://img.shields.io/github/stars/ramzus/hyde-hyde.svg) ![GitHub forks](https://img.shields.io/github/forks/ramzus/hyde-hyde.svg) ![GitHub issues](https://img.shields.io/github/issues/ramzus/hyde-hyde.svg)
 
@@ -125,6 +129,17 @@ __`Hyde-hyde`__ essentially inherits most of Hyde's [options](https://github.com
   	github = "htr3n"
   	...
   ```
+
+* `sidebarColor = "#300030"`: Setting a custom color for the sidebar background. Any valid CSS color value can be used (hex, rgb, hsl, color names, etc.).
+
+  ```toml
+  [params]
+  	sidebarColor = "#2c3e50"  # Dark blue-gray
+  	# or
+  	sidebarColor = "rgb(44, 62, 80)"
+  	# or  
+  	sidebarColor = "darkslateblue"
+  ```
   
 *  `include_toc = false`: Setting to `false` in FrontMatter will disable too short TOC data as your want. 
 
@@ -138,6 +153,25 @@ __`Hyde-hyde`__ essentially inherits most of Hyde's [options](https://github.com
 ### Customisations
 
 * Most of the customisable SCSS styles in [_assets/scss/hyde-hyde_](https://github.com/htr3n/hyde-hyde/blob/master/assets/scss/hyde-hyde) and Hugo templates in [_hyde-hyde/layouts_](https://github.com/htr3n/hyde-hyde/blob/master/layouts) are modularised and can be altered/adapted easily.
+
+#### Custom Sidebar Color
+
+You can customize the sidebar color by setting the `sidebarColor` parameter in your `config.toml`:
+
+```toml
+[params]
+sidebarColor = "#2c3e50"  # Dark blue-gray
+```
+
+Any valid CSS color value is supported:
+```toml
+[params]
+sidebarColor = "#ff6b6b"           # Hex color
+# or
+sidebarColor = "rgb(255, 107, 107)" # RGB color  
+# or
+sidebarColor = "darkslateblue"      # Color name
+```
 
 ## Portfolio
 

@@ -1,5 +1,5 @@
 .sidebar {
-  background-color: $sidebar-color;
+  background-color: var(--sidebar-color, #{$sidebar-color});
   color: rgb(255, 255, 255);
   color: rgba(255, 255, 255, 0.5);
   padding: 2rem 1rem;
