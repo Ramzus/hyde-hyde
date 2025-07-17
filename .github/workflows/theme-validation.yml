@@ -44,7 +44,7 @@ jobs:
         echo "Minimum required: $MIN_VERSION"
         
         # Build the site
-        hugo --themesDir ../.. --theme hyde-hyde --verbose
+        hugo --themesDir ../.. --theme hyde-hyde
         
         echo "✅ Compatible with Hugo ${{ matrix.hugo-version }}"
 
@@ -159,7 +159,7 @@ jobs:
         
         echo "Measuring build performance..."
         start_time=$(date +%s)
-        hugo --themesDir ../.. --theme hyde-hyde --verbose --minify
+        hugo --themesDir ../.. --theme hyde-hyde --minify
         end_time=$(date +%s)
         
         build_time=$((end_time - start_time))

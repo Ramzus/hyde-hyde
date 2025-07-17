@@ -83,7 +83,7 @@ jobs:
       run: |
         echo "Building example site..."
         cd exampleSite
-        hugo --themesDir ../.. --theme hyde-hyde --verbose --minify --cleanDestinationDir
+        hugo --themesDir ../.. --theme hyde-hyde --minify --cleanDestinationDir
         echo "✅ Hugo build successful"
 
     - name: Check generated files
@@ -125,7 +125,7 @@ jobs:
         echo "Testing SCSS compilation..."
         cd exampleSite
         # Build again to ensure SCSS is properly compiled
-        hugo --themesDir ../.. --theme hyde-hyde --verbose
+        hugo --themesDir ../.. --theme hyde-hyde
         
         echo "Checking CSS output..."
         if [ ! -f "public/css/hyde-hyde.css" ]; then

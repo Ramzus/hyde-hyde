@@ -43,7 +43,7 @@ jobs:
         sudo dpkg -i hugo.deb
         
         cd exampleSite
-        hugo --themesDir ../.. --theme hyde-hyde --verbose
+        hugo --themesDir ../.. --theme hyde-hyde
         echo "✅ Theme works with latest Hugo version"
 
   check-dependencies:
