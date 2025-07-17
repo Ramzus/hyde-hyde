@@ -5,4 +5,12 @@
 }
 </style>
 {{ end }}
+{{ if not .Site.Params.sidebarAnimation }}
+<style>
+.sidebar::before,
+.sidebar::after {
+  animation: none !important;
+}
+</style>
+{{ end }}
 

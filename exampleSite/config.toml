@@ -25,6 +25,7 @@ theme = "hyde-hyde"
     # sidebar, copyright & license
     #logoimage = "/img/hugo.png"
     sidebarColor = "#001f3f"  # Custom sidebar background color (optional, dark blue)
+    sidebarAnimation = true  # Enable wonderful multi-layered animation (optional, default: false)
     copyright = "htr3n"
     since = 2019
     license = "CC BY-SA 4.0"

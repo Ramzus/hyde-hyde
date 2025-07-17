@@ -23,6 +23,7 @@ Currently, this fork maintains compatibility with the original theme. Any signif
 #### New Features in This Fork
 
 * **Customizable Sidebar Color**: Added `sidebarColor` parameter in `config.toml` to easily customize the sidebar background color. Set `sidebarColor = "#your-color"` in the `[params]` section.
+* **Wonderful Sidebar Animation**: Added `sidebarAnimation` parameter to enable a stunning multi-layered animation effect on the sidebar. Set `sidebarAnimation = true` to enable.
 
 ### Repository Status
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://github.com/ramzus/hyde-hyde/blob/main/LICENSE.md) ![GitHub stars](https://img.shields.io/github/stars/ramzus/hyde-hyde.svg) ![GitHub forks](https://img.shields.io/github/forks/ramzus/hyde-hyde.svg) ![GitHub issues](https://img.shields.io/github/issues/ramzus/hyde-hyde.svg)
@@ -140,6 +141,13 @@ __`Hyde-hyde`__ essentially inherits most of Hyde's [options](https://github.com
   	# or  
   	sidebarColor = "darkslateblue"
   ```
+
+* `sidebarAnimation = true|false` (default `false`): Enable a wonderful multi-layered animation effect on the sidebar background.
+
+  ```toml
+  [params]
+  	sidebarAnimation = true  # Enable wonderful sidebar animation
+  ```
   
 *  `include_toc = false`: Setting to `false` in FrontMatter will disable too short TOC data as your want. 
 
@@ -172,6 +180,24 @@ sidebarColor = "rgb(255, 107, 107)" # RGB color
 # or
 sidebarColor = "darkslateblue"      # Color name
 ```
+
+#### Wonderful Sidebar Animation
+
+You can enable a stunning multi-layered animation on the sidebar:
+
+```toml
+[params]
+sidebarAnimation = true  # Enable wonderful sidebar animation
+sidebarColor = "#001f3f" # Works amazingly with any color
+```
+
+This animation creates a wonderful visual experience with multiple layers:
+
+- **🌈 Shifting Gradients**: Smooth color transitions that flow across the sidebar
+- **✨ Floating Particles**: Delicate light points that gently float and rotate
+- **🎨 Dual-layered Depth**: Two independent animation layers create rich visual depth
+
+The combined effect is elegant yet professional, creating a sidebar that feels alive and dynamic while maintaining readability and sophistication. This animation works beautifully with any sidebar color and adds a premium, modern feel to your site.
 
 ## Portfolio
 
